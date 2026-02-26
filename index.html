@@ -118,6 +118,13 @@ body{font-family:'Sarabun',sans-serif;background:linear-gradient(160deg,#f0f4ff 
 .ni .ic{font-size:18px;line-height:1;transition:.2s}
 .ni .lb{font-size:7.5px;font-weight:600;color:rgba(255,255,255,.35);transition:.2s;letter-spacing:.2px}
 .ni.on{background:rgba(0,184,169,.12)}
+.ni-tb{position:relative}
+@keyframes tbGlow{
+  0%,100%{filter:drop-shadow(0 0 2px rgba(0,184,169,.3));transform:scale(1)}
+  50%{filter:drop-shadow(0 0 8px rgba(0,184,169,.9)) drop-shadow(0 0 16px rgba(247,201,72,.6));transform:scale(1.15)}
+}
+.tb-glow{display:inline-block;animation:tbGlow 2.5s ease-in-out infinite;}
+.ni-tb::after{content:'';position:absolute;top:4px;right:8px;width:6px;height:6px;border-radius:50%;background:#f7c948;box-shadow:0 0 6px #f7c948;animation:tbGlow 2.5s ease-in-out infinite;}
 .ni.on .lb{color:#00d4c8;font-weight:700}
 .ni.on .ic{filter:drop-shadow(0 0 6px rgba(0,184,169,.6))}
 .ni.on{position:relative}
@@ -1303,13 +1310,13 @@ body{font-family:'Sarabun',sans-serif;background:linear-gradient(160deg,#f0f4ff 
 <div style="display:flex;align-items:center;gap:8px;position:relative;z-index:1"><div class="top-logo">🎓</div><div><h1>EduCreator AI</h1><div class="sub">การสร้างสรรค์คอนเทนต์บนดิจิทัลแพลตฟอร์ม</div></div></div>
 <div class="rsw" style="position:relative;z-index:1"><button class="rb on" onclick="setR('s')">🧑‍🎓 นักศึกษา</button><button class="rb" onclick="setR('i')">👩‍🏫 อาจารย์</button><button class="rb" onclick="setGuest()">🌐 Guest</button></div>
 </div>
-<div class="bnav" id="BN"><button class="ni on" onclick="sG('sh')"><span class="ic">🏠</span><span class="lb">หน้าแรก</span></button><button class="ni" onclick="sG('sl')"><span class="ic">📖</span><span class="lb">เรียนรู้</span></button><button class="ni" onclick="sG('ss')"><span class="ic">📤</span><span class="lb">ส่งงาน</span></button><button class="ni" onclick="sG('se')"><span class="ic">🛡️</span><span class="lb">จริยธรรม</span></button></div>
+<div class="bnav" id="BN"><button class="ni on" onclick="sG('sh')"><span class="ic">🏠</span><span class="lb">หน้าแรก</span></button><button class="ni" onclick="sG('sl')"><span class="ic">📖</span><span class="lb">เรียนรู้</span></button><button class="ni ni-tb" onclick="openTextbook()"><span class="ic tb-glow">📚</span><span class="lb">หนังสือเรียน</span></button><button class="ni" onclick="sG('ss')"><span class="ic">📤</span><span class="lb">ส่งงาน</span></button><button class="ni" onclick="sG('se')"><span class="ic">🛡️</span><span class="lb">จริยธรรม</span></button></div>
 <div class="sbar" id="SB"><div class="sl">ภาพรวม</div><button class="sb on" onclick="iG('id')"><span>🏠</span><span class="stx"> Dashboard</span></button><div class="sp"></div><div class="sl">เนื้อหา</div><button class="sb" onclick="iG('it')"><span>🤖</span><span class="stx"> AI Tools 60+</span></button><button class="sb" onclick="iG('tp')"><span>📋</span><span class="stx"> 80 หัวข้อ</span></button><button class="sb" onclick="iG('fm')"><span>🎬</span><span class="stx"> 4 รูปแบบ</span></button><button class="sb" onclick="iG('pn')"><span>📅</span><span class="stx"> แผน 30 วัน</span></button><div class="sp"></div><div class="sl">ตรวจงาน</div><button class="sb" onclick="iG('isu')"><span>📤</span><span class="stx"> ตรวจ+คะแนน</span></button><button class="sb" onclick="iG('ie')"><span>🛡️</span><span class="stx"> จริยธรรม</span></button></div>
 <div class="M" id="Z"></div>
 <div class="ov" id="OV"><div class="oc"><div class="oi" id="OI">🎉</div><h2 id="OT">สำเร็จ!</h2><p id="OM">บันทึกเรียบร้อย</p><button class="ocl" onclick="document.getElementById('OV').classList.remove('sh')">ตกลง</button></div></div>
 <script>
 const API='https://script.google.com/macros/s/AKfycbwG6gnQRalwKw-em5o4qC5sRRWV92Jsn88_4RbSzvZnjhj7L60S4m740n3basxPjuyb/exec';
-let role='s',sp='sh',ip='id',sLes=null,sCat='all',iCat='all',iSrch='',isGuest=false,stuValidated=false;
+let role='s',sp='sh',ip='id',sLes=null,sMod=null,sCat='all',iCat='all',iSrch='',isGuest=false,stuValidated=false;
 
 // ===== DATA =====
 const MOD=[
@@ -1566,6 +1573,7 @@ function renderStudent(Z){
   switch(sp){
     case 'sh':renderStuHome(Z);break;
     case 'sl':renderStuLearn(Z);break;
+    case 'sm':renderModulePage(Z);break;
     case 'ss':isGuest?renderGuestLocked(Z,'ส่งงาน'):renderStuSubmit(Z);break;
     case 'se':renderStuEthics(Z);break;
   }
@@ -1622,19 +1630,74 @@ function renderStuHome(Z){
   </div></div></div>`;
 }
 
+function renderModulePage(Z){
+  const mod = MOD.find(m=>m.id===sMod);
+  if(!mod){sp='sl';R();return;}
+  const dn = gD();
+
+  function kpHtml(kps){
+    return kps.map(k=>`<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">
+      <span style="color:${mod.c};font-size:12px;margin-top:2px;flex-shrink:0">▶</span>
+      <span style="font-size:13px;line-height:1.6;color:#1e293b">${k}</span>
+    </div>`).join('');
+  }
+
+  let h=`<div class="les-fs" style="--mc:${mod.c}">
+    <div class="les-top">
+      <button class="les-back" onclick="sp='sl';sMod=null;R()">← กลับ</button>
+      <span class="les-pg">${mod.t.split(':')[0]}</span>
+    </div>
+    <div class="les-hd" style="background:linear-gradient(135deg,#030d1a 0%,${mod.c}e0 50%,${mod.c}90 100%)">
+      <span class="les-star" style="left:12%;top:25%;animation-delay:0s"></span>
+      <span class="les-star" style="left:30%;top:65%;animation-delay:.5s"></span>
+      <span class="les-star" style="left:55%;top:20%;animation-delay:1s"></span>
+      <span class="les-star" style="left:75%;top:72%;animation-delay:1.5s"></span>
+      <span class="les-star" style="left:88%;top:40%;animation-delay:2s"></span>
+      <div class="les-bc">${mod.n}</div>
+      <div class="les-title" style="font-size:17px">${mod.t}</div>
+      <div class="les-sub">${mod.ls.length} บทเรียน</div>
+    </div>
+    <div class="les-body">`;
+
+  mod.ls.forEach((l,i)=>{
+    const done = dn.includes(l.id);
+    h+=`<div style="margin-bottom:18px;background:${done?'#f0fdf4':'#fff'};border:1.5px solid ${done?mod.c+'60':'#e2e8f0'};border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="width:28px;height:28px;border-radius:50%;background:${mod.c};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">${i+1}</div>
+        <div>
+          <div style="font-size:13px;font-weight:800;color:${done?mod.c:'#0a2545'}">${done?'✅ ':''} ${l.t}</div>
+          <div style="font-size:10px;color:#64748b">${l.s}</div>
+        </div>
+      </div>
+      ${kpHtml(l.kp)}
+      <div style="margin-top:10px;background:${mod.c}15;border-left:3px solid ${mod.c};border-radius:0 8px 8px 0;padding:8px 12px;font-size:11px;font-weight:700;color:${mod.c}">🎯 ${l.tk}</div>
+      ${!isGuest && !done ? `<button onclick="sD('${l.id}');R()" style="margin-top:10px;width:100%;padding:8px;border:1.5px solid ${mod.c};border-radius:8px;background:${mod.c}10;color:${mod.c};font-size:11px;font-weight:700;font-family:inherit;cursor:pointer">👍 รับทราบแล้ว</button>` : done ? `<div style="text-align:center;font-size:10px;color:${mod.c};margin-top:8px;font-weight:700">✅ เรียนรู้แล้ว</div>` : ''}
+    </div>`;
+  });
+
+  const allDone = mod.ls.every(l=>dn.includes(l.id));
+  h+=`</div>
+    <div class="les-foot">
+      <button class="les-done ${allDone?'done':''}" onclick="${!isGuest && !allDone ? mod.ls.map(l=>`sD('${l.id}');`).join('') : ''}sp='sl';sMod=null;R()">
+        ${isGuest ? '← กลับ' : allDone ? '👍 รับทราบทั้ง Module แล้วค่ะ' : '👍 รับทราบทั้ง Module'}
+      </button>
+    </div>
+  </div>`;
+  Z.innerHTML=h;
+}
+
 function renderStuLearn(Z){
   const dn=gD();
   let h='<div style="font-size:13px;font-weight:800;margin-bottom:8px">📖 บทเรียน 5 Modules</div>';
   MOD.forEach(m=>{
     const tot=m.ls.length,done=m.ls.filter(l=>dn.includes(l.id)).length;
     const pct=tot?Math.round(done/tot*100):0;
-    const firstUnfinished=m.ls.find(l=>!dn.includes(l.id))||m.ls[0];
-    h+=`<div class="mc" onclick="sLes='${firstUnfinished.id}';R()">
+    h+=`<div class="mc" onclick="sMod='${m.id}';sp='sm';R()">
       <div class="mi-wrap" style="--mc:${m.c}">
         <div class="mi-ring"></div>
         <div class="mi" style="background:${m.c}20;color:${m.c}">${m.t.split(' ')[0]}</div>
       </div>
-      <div style="flex:1"><div class="mn">${m.n}</div><div class="ms">${done}/${tot} บท</div>
+      <div style="flex:1"><div class="mn">${m.n}</div><div class="ms">${done}/${tot} บท เสร็จแล้ว</div>
       <div class="mbar"><div class="mf" style="width:${pct}%;background:${m.c}"></div></div></div>
       <div class="mp" style="color:${m.c}">${pct}%</div></div>`;
   });
