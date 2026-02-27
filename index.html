@@ -1511,7 +1511,10 @@ function setR(r){
     if(pw===null)return;
     if(pw!=='9559'){alert('❌ รหัสผ่านไม่ถูกต้อง');return;}
   }
+  // Reset guest mode when switching to student
+  if(r==='s') isGuest=false;
   role=r;
+  sp='sh'; // always go to home when switching role
   document.querySelectorAll('.rb').forEach((b,i)=>{b.classList.toggle('on',i==(r=='s'?0:1))});
   document.getElementById('BN').style.display=r=='s'?'flex':'none';
   document.getElementById('SB').style.display=r=='i'?'block':'none';
